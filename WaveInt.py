@@ -45,7 +45,7 @@ class WaveInt(object):
             Xr = np.array(Xr,dtype='float64')
             
         # Assign attributes from input parameters
-        self.model_file = model_file
+        self.model_file = os.path.abspath(model_file)
         self.dist_file  = dist_file
         self.npts       = npts
         self.delta      = delta
@@ -56,7 +56,7 @@ class WaveInt(object):
         self.Xr         = Xr
         
         # Output synthetic seismograms
-        self.o_synth    = None
+        self.synth    = None
 
         # Hard-wired assignements
         self.dist       = None
@@ -99,8 +99,9 @@ class WaveInt(object):
         '''
 
         # Check if X and Y are lists or arrays
-        if type(ifiles)!=list and type(ifiles)!=np.ndarray:
+        if type(X)!=list and type(X)!=np.ndarray:
             X = [X]
+        if type(Y)!=list and type(Y)!=np.ndarray:
             Y = [Y]
         if type(stat_names)!=list:
             stat_names = [stat_names]
@@ -111,7 +112,7 @@ class WaveInt(object):
 
         # Assign X and Y to Xr
         self.stat = deepcopy(stat_names)
-        self.Xr = np.arrange([[x,y] for x,y in zip(X,Y)],dtype='float64')
+        self.Xr = np.array([[x,y] for x,y in zip(X,Y)],dtype='float64')
 
         # All done
         return
@@ -126,7 +127,7 @@ class WaveInt(object):
         assert len(self.Xs)==3, 'Xs is not assigned correctly (must be a (3,) ndarray)'
 
         # Convert to ndarray
-        if not isinstance(Xs,np.ndarray):            
+        if not isinstance(self.Xs,np.ndarray):            
             self.Xs = np.array(self.Xs,dtype='float64')
         
         # All done
@@ -140,7 +141,8 @@ class WaveInt(object):
         '''
         
         # Read station file
-        self.readStatXY(station_file)
+        if station_file!=None:
+            self.readStatXY(station_file)
 
         # Check/Convert source coordinates
         self.checkXs()
@@ -219,12 +221,14 @@ class WaveInt(object):
         # All done
         return
 
-    def writeRfile(self,rfile_name):
-        f = open(rfile_name,'wt')
+    def writeRfile(self,rfile_name,STF):
+        '''
+        Write STF to rfile_name
+        '''
+        f  = open(rfile_name,'wt')
+        ns = len(STF)
         f.write('%5d%10.3f\n'%(ns,self.delta))
         for i in xrange(len(STF)):
-            #if not i%4:
-            #    f.write('\n')
             f.write('%15.7e'%STF[i])				
         f.write('\n')
         f.close()
@@ -277,13 +281,16 @@ class WaveInt(object):
             if half_dur < self.delta: 
                 efd.write('Warning: Using half-duration<sampling rate: will use dirac STF\n')
                 stf_type = 'dirac'
+                half_dur_factor = None
+            else:
+                half_dur_factor = int(np.round(half_dur/self.delta))
         
         # Initialize the hpulse command
         hpulse_f96 = 'hpulse_file96' # hpulse output file96
         if stf_type=='dirac':      # Dirac
             hpulse_cmd = 'hpulse96 -%c -i > %s'%(out_type,hpulse_f96)
 	elif stf_type=='triangle': # Triangle
-            hpulse_cmd = 'hpulse96 -%c -t -l %e > %s'%(out_type,half_dur)
+            hpulse_cmd = 'hpulse96 -%c -t -l %d > %s'%(out_type,half_dur_factor,hpulse_f96)
         elif stf_type=='rfile':    # User supplied STF
             hpulse_cmd = 'hpulse96 -%c -F %s > %s'%(out_type,rfile,hpulse_f96)
         elif stf_type=='boxcar':     # Boxcar STF
@@ -292,14 +299,7 @@ class WaveInt(object):
             # build a rfile with a boxcar
             ns  = int(round(duration/self.delta))
             STF = np.ones(ns)/duration
-            f = open(rfile,'wt')
-            f.write('%5d%10.3f\n'%(ns,self.delta))
-            for i in xrange(len(STF)):
-                #if not i%4:
-                #    f.write('\n')
-                f.write('%15.7e'%STF[i])				
-            f.write('\n')
-            f.close()
+            self.writeRfile(rfile,STF)
         else:
             raise TypeError('stf_type')
         
@@ -319,7 +319,6 @@ class WaveInt(object):
         for j in xrange(unique_dist.size):
             for k in xrange(self.dist.size):
                 if self.dist[k]==unique_dist[j]:
-                    print self.dist[k],Az[k],BAz[k]
                     # Select Green's functions
                     fsel_cmd  = fsel_cmd_format%(j+1,hpulse_f96,fsel_f96)
                     call(fsel_cmd, shell=True,stdout=ofd,stderr=efd)
@@ -371,12 +370,15 @@ class WaveInt(object):
         # Calculate synthetics from pre-calculated kernels
         self.synthKernelSDR(out_type,strike,dip,rake,M0,stf_type,duration,rfile,ofd=ofd,efd=efd)
         
-        self.o_synth = []
+        self.synth = {}
         for stat in self.stat:
-            for c in data_cmp:
+            self.synth[stat]={}
+            for c in 'ZNE':
                 sacfile = sac()
                 sacfile.rsac('%s_%c.SAC'%(stat,c))
-                self.o_synth.append(deepcopy(sacfile))
+                # Conversion from cm -> m
+                sacfile.depvar *= 1.0e-2
+                self.synth[stat][c] = deepcopy(sacfile)
 
         # All done
         return
