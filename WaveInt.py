@@ -5,8 +5,8 @@ Written by Z. Duputel, September 2013
 '''
 
 # Personals
-from MyUtils import rm
-from sacpy import sac
+from PyUtils import rm
+from sacpy   import sac
 
 # Externals
 import sys
