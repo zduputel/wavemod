@@ -1,6 +1,8 @@
 ## Some instructions
 
 # Z. Duputel - January 2014
-The WaveMod directory has to be placed in a directory that is on the PYTHONPATH environment.
-The package "Computer programs in seismology" must be properly installed and the path to associated binaries must be included in the PATH environment variable.
-The module PyUtils must be placed in a directory that is on the PYTHONPATH environment.
+- The WaveMod module must be located in a directory that is incuded in the PYTHONPATH environment.
+
+- The package "Computer programs in seismology" must be installed and path to associated binaries must be included in the PATH environment variable.
+
+- The PyUtils module must be located in a directory that is included in the PYTHONPATH environment.
