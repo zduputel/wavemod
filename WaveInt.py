@@ -290,7 +290,7 @@ class WaveInt(object):
         if stf_type=='dirac':      # Dirac
             hpulse_cmd = 'hpulse96 -%c -i > %s'%(out_type,hpulse_f96)
 	elif stf_type=='triangle': # Triangle
-            hpulse_cmd = 'hpulse96 -%c -t -l %d > %s'%(out_type,half_dur_factor,hpulse_f96)
+            hpulse_cmd = 'hpulse96 -%c -t -l %d -Z > %s'%(out_type,half_dur_factor,hpulse_f96)
         elif stf_type=='rfile':    # User supplied STF
             hpulse_cmd = 'hpulse96 -%c -F %s > %s'%(out_type,rfile,hpulse_f96)
         elif stf_type=='boxcar':     # Boxcar STF

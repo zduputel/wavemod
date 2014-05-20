@@ -203,9 +203,9 @@ class FastSweep(object):
             * grid_space: spacing for the grid used to solve eikonal
         '''
 
-        # Check fault strike dip rake
-        assert fault.f_strike != None, 'Fault strike must be assigned'
-        assert fault.f_dip    != None, 'Fault dip must be assigned'
+        ## Check fault strike dip rake
+        #assert fault.f_strike != None, 'Fault strike must be assigned'
+        #assert fault.f_dip    != None, 'Fault dip must be assigned'
 
         # Loop over each patch
         Np = len(fault.patch)
@@ -217,9 +217,14 @@ class FastSweep(object):
             # Get patch location and geometry
             p_x,p_y,p_z,p_W,p_L,p_strike,p_dip = fault.getpatchgeometry(p,center=True)
 
-            # Check that the fault is planar
-            assert np.round(p_strike,2)==np.round(fault.f_strike,2), 'Fault must be planar' 
-            assert np.round(p_dip,2)   ==np.round(fault.f_dip,2)   , 'Fault must be planar' 
+            ## Check that the fault is planar
+            #assert np.round(p_strike,2)==np.round(fault.f_strike,2), 'Fault must be planar' 
+            #assert np.round(p_dip,2)   ==np.round(fault.f_dip,2)   , 'Fault must be planar' 
+            if p==0:
+                width  = np.round(p_W,2)
+                length = np.round(p_L,2)
+            assert np.round(p_W,2)==width,  'Patch width  must be homogeneous over the fault'
+            assert np.round(p_L,2)==length, 'Patch length must be homogeneous over the fault'
 
             # get coordinates along fault
             g_dip_c, g_strike_c = fault.getHypoToCenter(p,True)
@@ -231,6 +236,9 @@ class FastSweep(object):
         # Dip is x, Strike is y
         x = np.arange(g_dip.min()+grid_space,g_dip.max()-grid_space,grid_space)
         y = np.arange(g_strike.min()+grid_space,g_strike.max()-grid_space,grid_space)        
+
+        x = np.round(x,2)
+        y = np.round(y,2)
 
         # Assign vr to grid
         vr_mat = np.zeros((y.size,x.size),dtype='float64')                        
