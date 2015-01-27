@@ -194,13 +194,14 @@ class FastSweep(object):
         return
 
 
-    def setGridFromFault(self,fault,grid_space):
+    def setGridFromFault(self,fault,grid_space=1.):
         '''
         set Fast sweeping Grid from kinematic fault object 
         (assuming a planar fault and rectangular patches)
         Args:
             * fault: kinematic fault object
             * grid_space: spacing for the grid used to solve eikonal
+              (if == None, will use 1 grid point at the center of each patch)
         '''
 
         ## Check fault strike dip rake
@@ -209,13 +210,15 @@ class FastSweep(object):
 
         # Loop over each patch
         Np = len(fault.patch)
-        g_dip    = []
-        g_strike = []
-        g_vr     = []
+        g_dip  = []; g_strike  = []
+        g_dipc = []; g_strikec = []
+        g_vr     = []        
         for p in range(Np):
 
             # Get patch location and geometry
             p_x,p_y,p_z,p_W,p_L,p_strike,p_dip = fault.getpatchgeometry(p,center=True)
+            if p==0:
+                patch_size = p_W
 
             ## Check that the fault is planar
             #assert np.round(p_strike,2)==np.round(fault.f_strike,2), 'Fault must be planar' 
@@ -228,15 +231,27 @@ class FastSweep(object):
 
             # get coordinates along fault
             g_dip_c, g_strike_c = fault.getHypoToCenter(p,True)
-            g_dip.append([g_dip_c-p_W/2.,g_dip_c+p_W/2.])
-            g_strike.append([g_strike_c-p_L/2.,g_strike_c+p_L/2.])
+            g_dip_e = [np.round(g_dip_c-p_W/2.,2),np.round(g_dip_c+p_W/2.,2)] 
+            g_strike_e = [np.round(g_strike_c-p_L/2.,2),np.round(g_strike_c+p_L/2.,2)]
+            g_dip.append(g_dip_e)
+            g_strike.append(g_strike_e)
+            g_dipc.append(g_dip_c)
+            g_strikec.append(g_strike_c)
+            if grid_space == None:
+                assert p_W==patch_size, 'Patch size must be uniform'
+                assert p_L==patch_size, 'Patch size must be uniform'
         g_dip    = np.array(g_dip)
         g_strike = np.array(g_strike)
+        g_dipc    = np.array(g_dipc)
+        g_strikec = np.array(g_strikec)
         
         # Dip is x, Strike is y
-        x = np.arange(g_dip.min()+grid_space,g_dip.max()-grid_space,grid_space)
-        y = np.arange(g_strike.min()+grid_space,g_strike.max()-grid_space,grid_space)        
-
+        if grid_space != None:
+            x = np.arange(g_dip.min()+grid_space/2.,g_dip.max(),grid_space)
+            y = np.arange(g_strike.min()+grid_space/2.,g_strike.max(),grid_space)        
+        else:
+            x = np.arange(g_dipc.min(),g_dipc.max()+patch_size,patch_size)
+            y = np.arange(g_strikec.min(),g_strikec.max()+patch_size,patch_size)                    
         x = np.round(x,2)
         y = np.round(y,2)
 
@@ -246,11 +261,6 @@ class FastSweep(object):
             i = np.where((y>=g_strike[p][0]) & (y<=g_strike[p][1]))[0]
             j = np.where((x>=g_dip[p][0])    & (x<=g_dip[p][1]))[0]
             vr_mat[i.min():i.max()+1,j.min():j.max()+1] = fault.vr[p]
-
-        #import matplotlib.pyplot as plt
-        #plt.pcolor(y,x,vr_mat)
-        #plt.colorbar()
-        #plt.show()
 
         # Check vr matrix
         assert not (vr_mat==0.).any(), 'incorrect vr assigment'
@@ -473,11 +483,57 @@ class FastSweep(object):
         # Find t0 for each point
         point_t0 = []
         for x,y in zip(point_x,point_y):
-            dx = self.pad_grid.x-x
-            dy = self.pad_grid.y-y
-            dist = np.sqrt(dx*dx+dy*dy)
-            i,j=np.where(dist==dist.min())
+            dx = np.abs(self.pad_grid.x-x)
+            dy = np.abs(self.pad_grid.y-y)
+            #dist = np.sqrt(dx*dx+dy*dy)
+            #i,j=np.where(dist==dist.min())
+            i,j = np.where( (dx==dx.min()) & (dy==dy.min()) )
             point_t0.append(self.t0[i[0],j[0]])
+        if type(point_x)==np.ndarray:
+            point_t0 = np.array(point_t0)
+
+        # Check length of output array
+        assert len(point_t0)==len(point_x), 'Some points are missing'
+
+        # All done
+        return point_t0
+
+    def interpolateT0(self,point_x,point_y):
+        '''
+        Get T0 value in point_x and point_y
+        Args:
+            * point_x,point_y (1D array or list)
+        '''
+        
+        # Check length of point_x and point_y
+        assert type(point_x)==type(point_y), 'point_x and point_y must have same type'
+        assert len(point_x)==len(point_y), 'point_x and point_y must have same length'
+
+        # Find t0 for each point
+        dgx = self.pad_grid.x[0,1]-self.pad_grid.x[0,0]
+        dgy = self.pad_grid.y[1,0]-self.pad_grid.y[0,0]
+        assert np.round(dgx,2) == np.round(dgy,2), 'Fast sweeping mesh must be uniform (%f vs %f)'%(dgx,dgy)
+        point_t0 = []
+        for x,y in zip(point_x,point_y):
+            dx  = x-self.pad_grid.x
+            dy  = y-self.pad_grid.y
+            dxa = np.abs(dx)
+            dya = np.abs(dy)            
+            i,j = np.where( (dxa==dxa.min()) & (dya==dya.min()))
+            i = i[0]
+            j = j[0]
+            if dx[i,j]<0:
+                j -= 1
+            if dy[i,j]<0:
+                i -= 1
+            xr = dx[i,j]/dgx
+            yr = dy[i,j]/dgy
+            f11 = self.t0[i  ,j  ]
+            f21 = self.t0[i  ,j+1]
+            f12 = self.t0[i+1,j  ]
+            f22 = self.t0[i+1,j+1]
+            point_t0.append(f11*(1.0-xr)*(1.0-yr) + f21*xr*(1.0-yr) + f12*(1.0-xr)*yr + f22*xr*yr)
+            
         if type(point_x)==np.ndarray:
             point_t0 = np.array(point_t0)
 
@@ -491,7 +547,7 @@ class FastSweep(object):
 
     def getT0FromFault(self,fault,g_x,g_y,g_z):
         '''
-        Get T0 value in point_x and point_y
+        Get T0 value in point_x and point_y (only working for planar faults)
         Args:
             * fault: fault object
             * g_x,g_y,g_z: coordinates of points on the fault (UTM)
