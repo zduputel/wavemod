@@ -5,7 +5,7 @@ Written by Z. Duputel, September 2013
 '''
 
 # Personals
-from .utils import rm
+from .PyUtils import rm
 from .sacpy import sac
 
 # Externals
