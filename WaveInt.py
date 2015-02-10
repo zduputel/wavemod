@@ -5,7 +5,7 @@ Written by Z. Duputel, September 2013
 '''
 
 # Personals
-from utils import rm
+from PyUtils import rm
 from sacpy   import sac
 
 # Externals
@@ -18,6 +18,9 @@ from copy       import deepcopy
 
 
 class WaveInt(object):
+    '''
+    A class that deals with Bob Hermann's wavenumber integration code
+    '''
 
     def __init__(self,model_file,npts,delta,T0=0.0,Vred=0.0,Xs=None,
                  stat=None,Xr=None,dist_file='dfile'):
@@ -78,7 +81,7 @@ class WaveInt(object):
         
         # Read the file and fill-up Xr
         self.stat = []; self.Xr = []
-	for l in open(station_file):
+        for l in open(station_file):
             if l.strip()[0]=='#':
                 continue
             items = l.strip().split()
@@ -215,8 +218,8 @@ class WaveInt(object):
         hspec_cmd = 'hspec96'
         
         # Calculate the GF spectrums
-	call(hprep_cmd, shell=True,stdout=ofd,stderr=efd)
-	call(hspec_cmd, shell=True,stdout=ofd,stderr=efd)
+        call(hprep_cmd, shell=True,stdout=ofd,stderr=efd)
+        call(hspec_cmd, shell=True,stdout=ofd,stderr=efd)
         
         # All done
         return
@@ -289,7 +292,7 @@ class WaveInt(object):
         hpulse_f96 = 'hpulse_file96' # hpulse output file96
         if stf_type=='dirac':      # Dirac
             hpulse_cmd = 'hpulse96 -%c -i > %s'%(out_type,hpulse_f96)
-	elif stf_type=='triangle': # Triangle
+        elif stf_type=='triangle': # Triangle
             hpulse_cmd = 'hpulse96 -%c -t -l %d -Z > %s'%(out_type,half_dur_factor,hpulse_f96)
         elif stf_type=='rfile':    # User supplied STF
             hpulse_cmd = 'hpulse96 -%c -F %s > %s'%(out_type,rfile,hpulse_f96)

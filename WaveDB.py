@@ -1,11 +1,13 @@
 '''
-A class that deals with Bob Hermann's wavenumber integration code
+A class that deals with Green's function database
 
 Written by Z. Duputel, May 2014
 '''
 
+
 # Personals
 import sacpy 
+
 
 # Externals
 import numpy as np
@@ -14,6 +16,19 @@ from glob import glob
 
 
 class WaveDB(object):
+    '''
+    A class that deals with Green's function database
+    
+    The database is organized as W-phase GFs databases. 
+    We use SAC files stored in sub-directories as follows:
+       H????.?/??/GF.????.SY.LH?.SAC
+    where 
+       - H????.?: depth
+       - ??: moment tensor component (PP,RP,RR,RT,TP,TT)
+       - ????: epicentral distance x 10 (in km or deg)
+       - LH?: component (either LHL or LHZ)    
+
+    '''
 
     def __init__(self,GF_path,scale):
         '''
@@ -22,9 +37,10 @@ class WaveDB(object):
              scale:   scalar factor for GFs
         '''
 
-        self.name = 'Waveform Integration'
+        self.name = 'GFs database'
 
         # Assign GF_path and scale
+        assert path.exists(GF_path), '%s not found, no such directory'%(GF_path)
         self.GF_path = path.abspath(GF_path)
         self.scale   = scale
 
@@ -34,6 +50,7 @@ class WaveDB(object):
         # All done
         return
 
+    
     def setDepths(self):
         '''
         List available source depths in the GF database
@@ -45,6 +62,9 @@ class WaveDB(object):
             items = h_dir.strip('/').split('/')
             d.append(float(items[-1][1:]))
 
+        # Check length of d
+        assert len(d) != 0, 'No H* directory found in %s'%(self.GF_path)
+            
         # Convert to array and store it
         self.depths = np.array(d)
         
@@ -86,6 +106,7 @@ class WaveDB(object):
         
         # All done
         return MT
+
     
     def rotMT(self,az_deg,MT):
         '''
@@ -111,6 +132,7 @@ class WaveDB(object):
         # All done
         return MT_rot
 
+    
     def rotTraces(self,L_sac,T_sac,baz,cmpaz):
         '''
         Rotate L_sac and T_sac according to alpha
@@ -130,6 +152,7 @@ class WaveDB(object):
         # All done
         return rot_sac
 
+    
     def bestDepth(self,depth):
         '''
         Find the best source depth in the database
@@ -137,6 +160,7 @@ class WaveDB(object):
 
         # Check depth
         assert self.depths != None, 'depths attribute must be assigned'
+        assert len(self.depths) != 0, 'depths attribute must be assigned'
 
         # Find best depth
         dd = np.abs(depth-self.depths)
@@ -146,6 +170,7 @@ class WaveDB(object):
         # All done
         return best_depth
 
+    
     def bestDist(self,H_path, dist):
         '''
         Find the best source-station distance in the GF database 
@@ -270,6 +295,7 @@ class WaveDB(object):
         # All done
         return Z_sac,L_sac,T_sac
 
+    
     def synthSDR(self,depth,az,dist,M0,strike,dip,rake):
         '''
         Compute synthetic waveforms from strike, dip, rake and M0
@@ -294,4 +320,3 @@ class WaveDB(object):
         # All done
         return Z_sac,L_sac,T_sac
 
-    
