@@ -8,7 +8,25 @@ Written by Z. Duputel, September 2013
 from os.path import exists,isdir
 from numpy   import ndarray
 import shutil
-import os  
+import os
+import re
+
+
+def grep(chaine, file):
+    """
+    Returns lines in file matching chaine
+    """
+    out = [];
+    template = re.compile(chaine)
+    fid  = open(file, 'r')
+    for line in fid:
+        if template.match(line):
+            out.append(line)
+    fid.close()
+    
+    # All done
+    return(out)
+
 
 def rm(ifiles):
     '''
@@ -50,15 +68,25 @@ def mkdir(idir,pflag=False):
     return
 
 
-def parse_config(cfg_file):
+class parseConfigError(Exception):
+    """
+    Raised if the config file is incorrect
+    """
+    pass
+
+
+def parseConfig(cfg_file):
     '''
-    Parse my config files
+    Parse my config files and returns a config dictionary
     Args:
          cfg_file: configuration filename
     '''
 
-    config = {}
+    # Check if cfg_file exists
     assert exists(cfg_file), 'Cannot read %s: No such file'%(cfg_file)
+
+    # Fill the config dictionary
+    config = {}
     try:
         config_lines = open(cfg_file, 'r').readlines()
         for line in config_lines:
@@ -68,13 +96,12 @@ def parse_config(cfg_file):
                 key,value = line.strip().split(':')
                 key   = key.strip()
                 value = value.strip()
-                if config.has_key(key):
+                if key in config:
                     config[key].append(value)
                 else:
                     config[key]=value
     except:
-        stderr.write('Error: format  %s\n'%cfg_file)
-        exit(1)
+        raise parseConfigError('Incorrect format in %s!\n'%cfg_file)
 
     # All done
     return config
