@@ -6,7 +6,7 @@ Written by Z. Duputel, May 2014
 
 
 # Personals
-import sacpy 
+import sacpy
 
 
 # Externals
