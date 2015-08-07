@@ -1,14 +1,11 @@
-## Some instructions
-
-# Z. Duputel - January 2014
-
+#Wavemod
 WaveMod calculates synthetic waveforms using various tools. Three main classes are currently available:
 - WaveDB deals with synthetic waveforms computed from Green's function database
 - WaveInt is a wrapper of Bob Hermann's Wavenumber Integration code
 - FastSweep is a simple 2D eikonal solver used for rupture front propagation on simple faults
 
+## Some instructions
 - The WaveMod module must be located in a directory that is incuded in the PYTHONPATH environment.
-
 - To use WaveDB, GFs databases must be organized following the W-phase format. We use SAC files stored in sub-directories as follows:
    H????.?/??/GF.????.SY.LH?.SAC
 where 
@@ -16,5 +13,4 @@ where
    - ??: moment tensor component (PP,RP,RR,RT,TP,TT)
    - ????: epicentral distance x 10 (in km or deg)
    - LH?: component (either LHL or LHZ)  
-
 - To WaveInt, the package "Computer programs in seismology" must be installed and path to associated binaries must be included in the PATH environment variable.
