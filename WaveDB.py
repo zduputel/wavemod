@@ -159,8 +159,8 @@ class WaveDB(object):
         '''
 
         # Check depth
-        assert self.depths != None, 'depths attribute must be assigned'
-        assert len(self.depths) != 0, 'depths attribute must be assigned'
+        assert self.depths is not None, 'depths attribute must be assigned'
+        assert len(self.depths) is not 0, 'depths attribute must be assigned'
 
         # Find best depth
         dd = np.abs(depth-self.depths)
@@ -186,7 +186,7 @@ class WaveDB(object):
             dists.append(float(items[1])/10.)
         dists = np.array(dists)
             
-        # Check dist
+        # Check dist        
         assert dists.min()<dist, 'Too short source-station distance %d'%(dist)
         assert dists.max()>dist, 'Too large source-station distance %d'%(dist)
             

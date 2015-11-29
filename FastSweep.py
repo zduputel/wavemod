@@ -70,7 +70,7 @@ class Grid(object):
         self.name = name
         
         # Init Grid
-        if x==None or y==None or vr==None:
+        if x is None or y is None or vr is None:
             self.x  = x.copy()
             self.y  = y.copy()
             self.vr = vr.copy()
@@ -359,7 +359,7 @@ class FastSweep(object):
         '''
         
         # Check sr
-        assert self.sr != None, 'Slowness matrix must be assigned' 
+        assert self.sr is not None, 'Slowness matrix must be assigned' 
 
         # Initialize to some large value
         self.t0 = np.ones(self.pad_grid.shape)*1.0e6
