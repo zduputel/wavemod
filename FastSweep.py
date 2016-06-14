@@ -137,7 +137,7 @@ class Grid(object):
         for i in range(self.ny-1):
             for j in range(self.nx):
                 dy = round(self.y[i+1,j]-self.y[i,j],4)
-                assert hr == dy, 'y grid spacing must be regular'
+                assert hr == dy, 'y grid spacing must be regular : {} {}'.format(hr,dy)
         
 
     def copy(self):
@@ -252,8 +252,10 @@ class FastSweep(object):
         else:
             x = np.arange(g_dipc.min(),g_dipc.max()+patch_size,patch_size)
             y = np.arange(g_strikec.min(),g_strikec.max()+patch_size,patch_size)                    
-        x = np.round(x,2)
-        y = np.round(y,2)
+
+        x = np.round(x,3)
+        y = np.round(y,3)
+
 
         # Assign vr to grid
         vr_mat = np.zeros((y.size,x.size),dtype='float64')                        
