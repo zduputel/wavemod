@@ -256,7 +256,6 @@ class FastSweep(object):
         x = np.round(x,3)
         y = np.round(y,3)
 
-
         # Assign vr to grid
         vr_mat = np.zeros((y.size,x.size),dtype='float64')                        
         for p in range(Np):
