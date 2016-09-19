@@ -229,7 +229,6 @@ class WaveKK(object):
             assert Wid not in Wlist, 'Multiple entries for %s'%(Wid)
             Wlist.append(Wid)
             W[Wid] = Wsac.copy()
-       f.close()
 
         # Set channel list (if not a GF file)
         if not GFfile:
@@ -237,7 +236,8 @@ class WaveKK(object):
             self.chans = deepcopy(Wlist)
         elif GFfile:
           assert len(Wlist)==self.nchan, 'Incorrect number of channels'  
-            
+    
+        f.close()        
         # All done
         return W
 
