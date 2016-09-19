@@ -238,9 +238,9 @@ class FastSweep(object):
             g_dipc.append(g_dip_c)
             g_strikec.append(g_strike_c)
             if grid_space == None:
-                assert p_W==patch_size, 'Patch size must be uniform'
-                assert p_L==patch_size, 'Patch size must be uniform'
-        g_dip    = np.array(g_dip)
+                assert np.round(p_W,4) == np.round(patch_size,4), 'Patch size must be uniform'
+                assert np.round(p_L,4) == np.round(patch_size,4), 'Patch size must be uniform'
+        g_dip    = np.array(g_dip); 
         g_strike = np.array(g_strike)
         g_dipc    = np.array(g_dipc)
         g_strikec = np.array(g_strikec)
