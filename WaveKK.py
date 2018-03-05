@@ -34,7 +34,7 @@ class WaveKK(object):
              delta:       Sampling period
              T0:          time of the first sample 
              TL:          duration of each trace
-             dtl:         triangle width
+             dtl:         triangle half-width
         '''
 
         self.name = 'Kikuchi Kanamori'
