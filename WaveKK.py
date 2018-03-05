@@ -229,7 +229,6 @@ class WaveKK(object):
             assert Wid not in Wlist, 'Multiple entries for %s'%(Wid)
             Wlist.append(Wid)
             W[Wid] = Wsac.copy()
-        f.close()
 
         # Set channel list (if not a GF file)
         if not GFfile:
@@ -237,7 +236,8 @@ class WaveKK(object):
             self.chans = deepcopy(Wlist)
         elif GFfile:
           assert len(Wlist)==self.nchan, 'Incorrect number of channels'  
-            
+    
+        f.close()        
         # All done
         return W
 
@@ -249,6 +249,35 @@ class WaveKK(object):
     
         # All done
         return
+
+    def readStatLL(self,stalocfile):
+        '''
+        Read a file containing the stations name, longitude and latitude
+        '''
+        
+        assert self.nchan is not None, 'Must read data first (self.readData)'
+
+        # Read file
+        fid = open(stalocfile)
+        posi = fid.readlines()
+        fid.close()
+
+        # Assign loc to data
+        for string in posi: # Loop over stations in file
+            string = string.split()
+            for dkey in self.data.keys():
+                if string[0] in dkey:
+                    self.data[dkey].stlo = float(string[1])
+                    self.data[dkey].stla = float(string[2])
+                    continue
+
+        # Find stations without location
+        for dkey in self.data.keys():
+            if self.data[dkey].stlo == -12345.0:
+                print 'Could not find location of station {}'.format(dkey)
+
+        return
+        
 
     def computeGFdb(self,Hs,Strikes,Dips,Rakes):
         '''
