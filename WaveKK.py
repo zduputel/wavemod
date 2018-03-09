@@ -87,7 +87,7 @@ class WaveKK(object):
             f.write(self.evid+'\n')
         else:
             f.write('None\n')
-        f.write('fort.1\n')
+        f.write('%s\n'%(self.datakkfile))
         f.write('%.4f %.4f %.4f %.4f %.4f %.4f %.4f\n'%(self.T0,self.TL,self.delta,H0,strike,dip,rake))
         f.write('1 1 1.0 1 1 1.0 3.0 %.4f %.4f %.4f 1 0.5\n'%(-self.T0,self.dtl,self.dtl))
         f.write('%d\n'%(self.nchan))
@@ -173,7 +173,8 @@ class WaveKK(object):
             ix   = int(items[5])+self.ixa 
             assert ix >= 0, 'ix-ixa must be larger than 0 (ix=%d)'%(ix)
             items = f.readline().strip().split()
-            ib = int(items[1])
+            ib = int(items[1]) # P, SV, SH or PP
+            ic = int(items[2]) # Z, N or E
             assert ib>=1 and ib<=4, 'ib must be >=1 and <=4'
             f.readline()
             f.readline()
@@ -194,7 +195,7 @@ class WaveKK(object):
                 wave = wave[ix:ie].copy()
             else:
                 wave = wave[ix:].copy()
-            # Set waveform id
+            # Set waveform type
             if ib == 1:
                 Wtype = 'P'
             elif ib == 2:
@@ -203,7 +204,16 @@ class WaveKK(object):
                 Wtype = 'SH'
             else:
                 Wtype = 'PP'
-            Wid = stat+Wtype
+            # Set waveform component 
+            if ic == 1:
+                Wcomp = 'Z'
+            elif ic == 2:
+                Wcomp = 'N'
+            elif ic == 3:
+                Wcomp = 'E'
+            # Set waveform id
+            Wid = stat+'_'+Wtype+'_'+Wcomp
+            # Create a sacpy.sac object for this waveform
             Wsac = sac()
             items = Wid.strip().split('.')
             Wsac.knetwk = items[0]
@@ -215,7 +225,7 @@ class WaveKK(object):
             else:
                 sys.stderr.write('Incorrect waveform id\n')
                 sys.exit(1)
-            Wsac.kcmpnm = Wtype
+            Wsac.kcmpnm = Wtype+'_'+Wcomp
             Wsac.b      = self.T0
             Wsac.delta  = dt
             Wsac.npts   = len(wave)
@@ -224,7 +234,6 @@ class WaveKK(object):
             Wsac.gcarc  = dist
             Wsac.user[0] = p
             Wsac.depvar = wave.copy()
-
             # Fill up dictionary
             assert Wid not in Wlist, 'Multiple entries for %s'%(Wid)
             Wlist.append(Wid)
@@ -246,6 +255,7 @@ class WaveKK(object):
         Read data from kk fort.1 formated file
         '''
         self.data = self.readfort1(ifile)
+        self.datakkfile = ifile
     
         # All done
         return
@@ -279,18 +289,23 @@ class WaveKK(object):
         return
         
 
-    def computeGFdb(self,Hs,Strikes,Dips,Rakes):
+    def computeGFdb(self,Hs,Strikes,Dips,Rakes,filter=True):
         '''
         Compute GFs database
         Args:
             * Hs,Strikes,Dips,Rakes: lists of depth, strikes, dips, rakes
+            * filter: if True, filter the Green's functions (according to i_master parameters in the KK run directory)
+                      if False, do not filter the Green's functions
         '''
 
         # Check things and cleanup
         assert self.nchan is not None, 'Must read data first (self.readData)'
         
         # Main loop
-        cmd = 'compute_green' # Patched version of mom3_large_v4 (by Z. Duputel)
+        if filter:
+            cmd = 'compute_green' # Patched version of mom3_large_v4 (by Z. Duputel)
+        else:
+            cmd = 'compute_green_nofilter' # Patched version of mom3_large_v4 (by Z. Duputel)
         self.GFdb = []
         GFparams = []
         for ho,s,d,r in zip(Hs,Strikes,Dips,Rakes):
@@ -328,6 +343,7 @@ class WaveKK(object):
             * lon0,lat0,H0: Hypocenter coordinates
             * lons,lats,Hs,Strikes,Dips,Rakes: Coordinates/Orientation of patches
             * ellps: Reference ellipsoid for distance/azimuth calculation
+            * causal: if True impose causality of the source (no slip before time=0.)
         '''
         # Check that everything is ready
         assert self.data is not None, 'Must read data first (use self.readData)'
