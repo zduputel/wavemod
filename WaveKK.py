@@ -284,7 +284,7 @@ class WaveKK(object):
         # Find stations without location
         for dkey in self.data.keys():
             if self.data[dkey].stlo == -12345.0:
-                print 'Could not find location of station {}'.format(dkey)
+                print('Could not find location of station {}'.format(dkey))
 
         return
         
