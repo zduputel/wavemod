@@ -236,8 +236,8 @@ class WaveDB(object):
             # Read GFs
             GF_Z_file = path.join(H_path,MT_cmp,Z_file)
             GF_L_file = path.join(H_path,MT_cmp,L_file)
-            GF_Z_sac.rsac(GF_Z_file)
-            GF_L_sac.rsac(GF_L_file)
+            GF_Z_sac.read(GF_Z_file)
+            GF_L_sac.read(GF_L_file)
             # Set Output sacs
             if MT_cmp=='RR':
                 Z_sac = GF_Z_sac.copy()
@@ -254,7 +254,7 @@ class WaveDB(object):
         for MT_cmp in ['RP','TP']:
             # Read GFs
             GF_T_file = path.join(H_path,MT_cmp,T_file)
-            GF_T_sac.rsac(GF_T_file)
+            GF_T_sac.read(GF_T_file)
             # Set Output sacs
             if MT_cmp=='RP':
                 T_sac = GF_T_sac.copy()
