@@ -4,10 +4,8 @@ A class that deals with Green's function database
 Written by Z. Duputel, May 2014
 '''
 
-
 # Personals
 import sacpy
-
 
 # Externals
 import numpy as np
@@ -61,6 +59,7 @@ class WaveDB(object):
         for h_dir in glob(path.join(self.GF_path,'H*/')):
             items = h_dir.strip('/').split('/')
             d.append(float(items[-1][1:]))
+        d.sort()
 
         # Check length of d
         assert len(d) != 0, 'No H* directory found in %s'%(self.GF_path)
@@ -110,7 +109,7 @@ class WaveDB(object):
     
     def rotMT(self,az_deg,MT):
         '''
-        Rotate moment tensor MT according to az
+        Rotate moment tensor MT according to az_deg
         '''
 
         # Compute cosines/sines
@@ -204,7 +203,7 @@ class WaveDB(object):
         Sum up Green's functions 
         Args:
             * best_depth: best depth in the database (in km)
-            * dist:       distance (in km or deg, depending on the d)
+            * dist:       distance (in km or deg, depending on the database)
             * MT_rot:     rotated moment tensor
         Outputs:
             * Z_sac: sac object for component Z
@@ -271,10 +270,14 @@ class WaveDB(object):
         '''
         Compute synthetic waveforms
         Args:
-            * depth: source depth
-            * az:    station azimuth
-            * dist:  distance
-            * MT:    moment tensor
+            * depth: source depth (in km)
+            * az:    station azimuth (in deg)
+            * dist:  distance (in km or deg, depending on the database)
+            * MT:    moment tensor dictionary (units consistent with the database)
+        Outputs:
+            * Z_sac: sac object for component Z
+            * L_sac: sac object for component L
+            * T_sac: sac object for component T
         '''
 
         # Rotate the moment tensor
@@ -300,13 +303,17 @@ class WaveDB(object):
         '''
         Compute synthetic waveforms from strike, dip, rake and M0
         Args:
-           * depth:  source depth
-           * az:     station azimuth
-           * dist:   distance
-           * M0:     seismic moment in dyne-cm
-           * strike: strike angle in degrees
-           * dip:    dip angle in degrees
-           * rake:   rake angle in degrees
+           * depth:  source depth (in km)
+           * az:     station azimuth (in deg)
+           * dist:   distance (in km or deg, depending on the database)
+           * M0:     seismic moment (units consistent with the database)
+           * strike: strike angle (in deg)
+           * dip:    dip angle (in deg)
+           * rake:   rake angle (in deg)
+        Outputs:
+            * Z_sac: sac object for component Z
+            * L_sac: sac object for component L
+            * T_sac: sac object for component T
         '''
         
         # Get the moment tensor from strike, dip and rake
