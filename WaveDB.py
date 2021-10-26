@@ -212,12 +212,12 @@ class WaveDB(object):
         '''
         
         # Init sac
-        Z_sac = sacpy.sac()
-        L_sac = sacpy.sac()
-        T_sac = sacpy.sac()
-        GF_Z_sac = sacpy.sac()
-        GF_L_sac = sacpy.sac()
-        GF_T_sac = sacpy.sac()
+        Z_sac = sacpy.Sac()
+        L_sac = sacpy.Sac()
+        T_sac = sacpy.Sac()
+        GF_Z_sac = sacpy.Sac()
+        GF_L_sac = sacpy.Sac()
+        GF_T_sac = sacpy.Sac()
 
         # Get prefix
         H_path   = path.join(self.GF_path,'H%05.1f'%(best_depth))
