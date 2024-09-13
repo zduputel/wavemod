@@ -199,7 +199,7 @@ class WaveInt(object):
         # All done
         return
 
-    def calcKernel(self,ofd=sys.stdout,efd=sys.stderr):
+    def calcKernel(self,ofd=sys.stdout,efd=sys.stderr,calc_dist=True):
         '''
         Calculate Green's functions in the frequency domain
         Args:
@@ -208,7 +208,8 @@ class WaveInt(object):
         '''
         
         # Check/convert source coordinates
-        self.checkXs()
+        if calc_dist ==False:
+            self.checkXs()
 
         # Assert if the distance file exists and if Xs is correct
         assert os.path.exists(self.dist_file), 'Cannot read %s (no such file)'%(self.dist_file)
@@ -319,8 +320,8 @@ class WaveInt(object):
         fmech_f96 = 'fmech_file96'
         fsel_cmd_format  = 'fsel96 -NS %d < %s > %s'
         fmech_cmd_format = 'fmech96 -S %.4f -D %.4f -R %.4f -M0 %.5e -A %.4f -B %.4f < %s > %s'
-        for j in xrange(unique_dist.size):
-            for k in xrange(self.dist.size):
+        for j in range(unique_dist.size):
+            for k in range(self.dist.size):
                 if self.dist[k]==unique_dist[j]:
                     # Select Green's functions
                     fsel_cmd  = fsel_cmd_format%(j+1,hpulse_f96,fsel_f96)
@@ -368,7 +369,7 @@ class WaveInt(object):
         self.writeDistFile()
         
         # Calculate Green's functions in the frequency domain
-        self.calcKernel(ofd=ofd,efd=efd)
+        self.calcKernel(ofd=ofd,efd=efd,calc_dist=calc_dist)
 
         # Calculate synthetics from pre-calculated kernels
         self.synthKernelSDR(out_type,strike,dip,rake,M0,stf_type,duration,rfile,ofd=ofd,efd=efd)
@@ -378,7 +379,7 @@ class WaveInt(object):
             self.synth[stat]={}
             for c in 'ZNE':
                 sacfile = sac()
-                sacfile.read('%s_%c.SAC'%(stat,c))
+                sacfile.rsac('%s_%c.SAC'%(stat,c))
                 # Conversion from cm -> m
                 sacfile.depvar *= 1.0e-2
                 self.synth[stat][c] = deepcopy(sacfile)
