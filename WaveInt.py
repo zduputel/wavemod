@@ -125,14 +125,15 @@ class WaveInt(object):
         Check and convert source coordinates to the correct format
         '''
         
-        # Check if it has been correctly assigned
-        assert self.Xs!=None,   'Xs is not assigned correctly (must be a (3,) ndarray)'
-        assert len(self.Xs)==3, 'Xs is not assigned correctly (must be a (3,) ndarray)'
-
         # Convert to ndarray
         if not isinstance(self.Xs,np.ndarray):            
+            # Check if it has been correctly assigned
+            assert self.Xs!=None,   'Xs is not assigned correctly (must be a (3,) ndarray)'
             self.Xs = np.array(self.Xs,dtype='float64')
-        
+
+        # Check the size of the array
+        assert self.Xs.size==3, 'Xs is not assigned correctly (must be a (3,) ndarray)'
+
         # All done
         return
 
