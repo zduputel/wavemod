@@ -6,7 +6,7 @@ Written by Z. Duputel, September 2013
 
 # Personals
 from .utils import rm
-from .sacpy import sac
+import sacpy
 
 # Externals
 import sys
@@ -378,7 +378,7 @@ class WaveInt(object):
         for stat in self.stat:
             self.synth[stat]={}
             for c in 'ZNE':
-                sacfile = sac()
+                sacfile = sacpy.Sac()
                 sacfile.read('%s_%c.SAC'%(stat,c))
                 # Conversion from cm -> m
                 sacfile.depvar *= 1.0e-2

@@ -6,7 +6,7 @@ Written by Z. Duputel, May 2016
 
 # Personals
 from .utils import rm
-from .sacpy import sac
+import sacpy
 
 # Externals
 import sys
@@ -214,7 +214,7 @@ class WaveKK(object):
             # Set waveform id
             Wid = stat+'_'+Wtype+'_'+Wcomp
             # Create a sacpy.sac object for this waveform
-            Wsac = sac()
+            Wsac = sacpy.Sac()
             items = Wid.strip().split('.')
             Wsac.knetwk = items[0]
             Wsac.kstnm  = items[1]
